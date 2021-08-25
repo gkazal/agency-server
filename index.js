@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const  MongoClient  = require('mongodb').MongoClient;
+const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID
 
 
@@ -29,16 +29,17 @@ client.connect(err => {
   const serviceCollection = client.db("agency").collection("services");
   const registerServiceCollection = client.db("agency").collection("serviceRegister")
   const feedbackCollection = client.db("agency").collection("feedback")
+  const adminCollection = client.db("agency").collection("admin")
 
 
-    // add service from admin to database from Service.js
+  // add service from admin to database from Service.js
   app.post('/addServices', (req, res) => {
-      const newServices = req.body;
-      console.log('adding new service', newServices)
-      serviceCollection.insertOne(newServices)
+    const newServices = req.body;
+    console.log('adding new service', newServices)
+    serviceCollection.insertOne(newServices)
       .then(result => {
-          console.log('inserted count', result.insertedCount)
-          res.send(result.insertedCount > 0)
+        console.log('inserted count', result.insertedCount)
+        res.send(result.insertedCount > 0)
       })
   })
 
@@ -48,48 +49,75 @@ client.connect(err => {
       .toArray((err, items) => {
         console.log('from database', items)
         res.send(items)
-    })
+      })
 
-  } )
+  })
 
   app.post('/addRegisterService', (req, res) => {
-      const newRegisterService = req.body
-      console.log(newRegisterService)
-      registerServiceCollection.insertOne(newRegisterService)
+    const newRegisterService = req.body
+    console.log(newRegisterService)
+    registerServiceCollection.insertOne(newRegisterService)
       .then(result => {
-          console.log('insertedCount', result.insertedCount)
-          res.send(result.insertedCount > 0)
+        console.log('insertedCount', result.insertedCount)
+        res.send(result.insertedCount > 0)
       })
 
   })
 
   // get serviceRegister info from specific email
   app.get('/serviceRegister', (req, res) => {
-    registerServiceCollection.find({email: req.query.email})
-    .toArray((err, documents) =>{
+    registerServiceCollection.find({ email: req.query.email })
+      .toArray((err, documents) => {
         res.send(documents)
-    })
-})
+      })
+  })
 
-// add feedback from user to DB in feedback.js
-app.post('/addFeedback', (req, res) => {
+  app.get('/showAllServiceList', (req, res) => {
+    registerServiceCollection.find()
+      .toArray((err, items) => {
+        console.log('from database', items)
+        res.send(items)
+      })
+  })
+
+  // add feedback from user to DB in feedback.js
+  app.post('/addFeedback', (req, res) => {
     const newFeedback = req.body
     console.log(newFeedback)
     feedbackCollection.insertOne(newFeedback)
-    .then(result => {
+      .then(result => {
         console.log('insertedCount', result.insertedCount)
         res.send(result.insertedCount > 0)
-    })
+      })
 
-})
-// show feedback from DB to Home page from showFeedback.js
-app.get('/showFeedback', (req, res) => {
+  })
+  // show feedback from DB to Home page from showFeedback.js
+  app.get('/showFeedback', (req, res) => {
     feedbackCollection.find()
-    .toArray((err, documents) =>{
+      .toArray((err, documents) => {
         res.send(documents)
-    })
-})
- 
+      })
+  })
+
+  // admin part...
+  app.post('/makeAdmin', (req, res) => {
+    const newAdmin = req.body
+    console.log(newAdmin)
+    adminCollection.insertOne(newAdmin)
+      .then(result => {
+        console.log('insertedCount', result.insertedCount)
+        res.send(result.insertedCount > 0)
+      })
+
+  })
+  app.post('/isAdmin', (req, res) => {
+    adminCollection.find({ email: req.body.email })
+      .toArray((err, documents) => {
+        res.send(documents.length > 0)
+      })
+
+  })
+
 
 
   console.log('database connected')
@@ -108,5 +136,5 @@ app.get('/showFeedback', (req, res) => {
 
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
-  })
+  console.log(`Example app listening at http://localhost:${port}`)
+})
